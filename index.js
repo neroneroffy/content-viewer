@@ -36,6 +36,7 @@ class EventEmitter {
         }
     }
 }
+
 const TEXT = 'TEXT'
 const WEB = 'WEB'
 const BTN_ACTIVE_BG_COLOR = '#ccc'
@@ -134,6 +135,7 @@ class MoFish {
         )
     }
     _renderToolBar() {
+        // 渲染模式切换
         const tools = [
             {
                 name: '文字',
@@ -259,6 +261,7 @@ class MoFish {
         return Promise.resolve(this.contentControlBtn)
     }
     _renderContent() {
+        // 文字模式和网页模式，都由该函数集中渲染
         const eventBus = this.getEventBus()
         const contentWrapper = document.getElementById(`${this._domIdPrefix}-content-wrapper`)
 
@@ -296,8 +299,8 @@ class MoFish {
         }
     }
     _renderTextContent() {
+        // 渲染文字模式的容器
         const eventBus = this.getEventBus()
-        // 内容区域
         const textContent = document.createElement('div')
         textContent.id = `${this._domIdPrefix}-text-content`
         textContent.classList.add(`${this._domIdPrefix}-dom-content`)
@@ -321,8 +324,8 @@ class MoFish {
         return Promise.resolve(this.textContent)
     }
     _renderWebContent() {
+        // 渲染网页模式的容器
         const eventBus = this.getEventBus()
-        // 内容区域
         const webContent = document.createElement('div')
         webContent.id = `${this._domIdPrefix}-web-content`
         webContent.src = this.inputStr
@@ -365,6 +368,7 @@ class MoFish {
         return Promise.resolve(this.webContent)
     }
     _renderOpacityControl() {
+        // 渲染透明度控制器
         const opacityControl = document.createElement('div')
         opacityControl.id = `${this._domIdPrefix}-opacity-control`
         const opacityControlBar = document.createElement('div')
@@ -395,6 +399,7 @@ class MoFish {
         return Promise.resolve(this.opacityControl)
     }
     _setSlideBarPosition(parent) {
+        // 设置透明度滑块位置
         let leftPosition = this._initialOpacity
         let isClicked = false
         return function (child) {
@@ -417,6 +422,7 @@ class MoFish {
         }.bind(this)
     }
     _processInputValue() {
+        // 处理输入框的值，根据当前所处模式（文字、网页）决定进行什么操作，在输入框敲回车时触发
         const eventBus = this.getEventBus()
         switch (this.mode) {
             case TEXT:
@@ -430,6 +436,7 @@ class MoFish {
         }
     }
     getEventBus() {
+        // 发布订阅单例
         if (!this._eventBus) {
             this._eventBus = new EventEmitter()
         }
@@ -441,6 +448,8 @@ class MoFish {
 }
 
 const wrapper = document.createElement('div')
+
+// 交互功能扩展
 const middlewares = [
     // iframe拖动
     instance => {
