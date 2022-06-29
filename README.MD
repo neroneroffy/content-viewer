@@ -12,5 +12,5 @@
 * alt + 空格隐藏，alt + ctrl显示
 
 # 截图
-<img src="https://github.com/neroneroffy/content-viewer/img.png"/>
-<img src="https://github.com/neroneroffy/content-viewer/img_1.png"/>
+<img src="https://github.com/neroneroffy/content-viewer/blob/master/img.png"/>
+<img src="https://github.com/neroneroffy/content-viewer/blob/master/img_1.png"/>
