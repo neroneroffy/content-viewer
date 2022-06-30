@@ -1,0 +1,7 @@
+# misc
+.DS_Store
+
+# vs-code
+/.history/
+
+.idea

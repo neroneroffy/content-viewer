@@ -14,3 +14,7 @@
 # 截图
 <img src="https://github.com/neroneroffy/content-viewer/blob/master/img.png"/>
 <img src="https://github.com/neroneroffy/content-viewer/blob/master/img_1.png"/>
+
+# 油猴脚本安装地址
+
+[这里](https://raw.githubusercontent.com/neroneroffy/content-viewer/master/tampermonkey-script/index.user.js)
