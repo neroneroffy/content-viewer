@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         mofish
-// @version      0.0.1
+// @version      0.0.2
 // @updateURL    https://raw.githubusercontent.com/neroneroffy/content-viewer/master/tampermonkey-script/index.meta.js
 // @downloadURL  https://raw.githubusercontent.com/neroneroffy/content-viewer/master/tampermonkey-script/index.user.js
 // @description  摸鱼神器
@@ -12,7 +12,7 @@
 
 
 ;(function() {
-  // 发布订阅用来控制一些渲染和事件绑定的时机
+// 发布订阅用来控制一些渲染和事件绑定的时机
   class EventEmitter {
     constructor() {
       this._listeners = new Map()
@@ -53,12 +53,13 @@
 
   const TEXT = 'TEXT'
   const WEB = 'WEB'
-  const BTN_ACTIVE_BG_COLOR = '#ccc'
+  const BTN_ACTIVE_BG_COLOR = '#e4e4e4'
   const BTN_ACTIVE_TEXT_COLOR = '#fff'
   const BTN_COMMON_TEXT_COLOR = '#ccc'
   const NORMAL_BG_COLOR = '#fff'
   const MIN_WIDTH = 300
   const MIN_HEIGHT = 300
+  const IFRAME_SRC = 'http://localhost:8848'
   class MoFish {
     constructor(container, middlewares) {
       this.container = container
@@ -133,19 +134,19 @@
         this._renderOpacityControl()
       ]
       return Promise.all(renderList).then(
-        domList => {
-          domList.forEach(dom => {
-            this.contentWrapper.append(dom)
-          })
-          this.container.append(this.contentWrapper)
-          const eventBus = this.getEventBus()
-          // 渲染内容
-          eventBus.emit('onRenderContent')
-          this.elements = [this.container, this.contentWrapper, ...domList]
-          // 将this抛出
-          return this._applyMiddleware(this)
-        },
-        err => Promise.reject(err)
+          domList => {
+            domList.forEach(dom => {
+              this.contentWrapper.append(dom)
+            })
+            this.container.append(this.contentWrapper)
+            const eventBus = this.getEventBus()
+            // 渲染内容
+            eventBus.emit('onRenderContent')
+            this.elements = [this.container, this.contentWrapper, ...domList]
+            // 将this抛出
+            return this._applyMiddleware(this)
+          },
+          err => Promise.reject(err)
       )
     }
     _renderToolBar() {
@@ -173,9 +174,9 @@
       const itemCssText = `
             padding: 3px 6px;
             font-size: 12px;
-            border: 1px solid #ccc;
+            border: 1px solid #e4e4e4;
             cursor: pointer;
-            color: #ccc;
+            color: #e4e4e4;
         `
       const itemClick = e => {
         const target = e.target
@@ -321,6 +322,7 @@
       const styleText = `
             width: 100%;
             height: ${((MIN_HEIGHT - 140) / MIN_HEIGHT) * 100}%;
+            color: #ccc;
             margin-top: 10px;
             overflow-y: auto;
             overflow-x: hidden;
@@ -345,6 +347,8 @@
       webContent.src = this.inputStr
       webContent.classList.add(`${this._domIdPrefix}-dom-content`)
       const iframe = document.createElement('iframe')
+      iframe.setAttribute('name', 'iframeBox')
+      iframe.src = IFRAME_SRC
       const styleText = `
             width: 100%;
             height: 50%;
@@ -372,11 +376,12 @@
       webContent.appendChild(iframe)
       this.webContent = webContent
       this.iframeContent = iframe
+
       eventBus.on('onUpdateIframeContent', () => {
         const webDom = document.getElementById(`${this._domIdPrefix}-web-content`)
         const iframeDom = webDom.getElementsByTagName('iframe')[0]
         if (iframeDom) {
-          iframeDom.src = this.inputStr
+          iframeDom.contentWindow.postMessage(this.inputStr,IFRAME_SRC);
         }
       })
       return Promise.resolve(this.webContent)
@@ -476,15 +481,15 @@
         // 拖动位置计算
         const calcPosition = (pt, bounds) => {
           const left =
-            (pt.x >= bounds.right
-                ? pt.x
-                :bounds.right
-            ) - bounds.offsetX
+              (pt.x >= bounds.right
+                      ? pt.x
+                      :bounds.right
+              ) - bounds.offsetX
           const top =
-            (pt.y >= bounds.bottom
-                ? pt.y
-                : bounds.bottom
-            ) - bounds.offsetY
+              (pt.y >= bounds.bottom
+                      ? pt.y
+                      : bounds.bottom
+              ) - bounds.offsetY
           return { left, top }
         }
         // 拖动边界计算
@@ -518,9 +523,9 @@
             webContent.appendChild(mask)
             webContent.addEventListener('mousedown', event => {
               const mBounds = mouseBounds(
-                event,
-                iframeContent.getClientRects()[0],
-                webContent.getClientRects()[0]
+                  event,
+                  iframeContent.getClientRects()[0],
+                  webContent.getClientRects()[0]
               )
               const move = e => {
                 let pt = calcPosition(e, mBounds)
@@ -749,11 +754,10 @@
     }
   ]
   new MoFish(
-    wrapper,
-    middlewares
+      wrapper,
+      middlewares
   ).then(instance => {
     // instance是插件实例
   })
   document.body.appendChild(wrapper)
-
 })()

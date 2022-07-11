@@ -1,0 +1,25 @@
+{
+  "name": "content-viewer",
+  "version": "1.0.0",
+  "description": "一个支持内嵌到网页中的小弹框，支持查看复制粘贴查看文字内容，浏览网页",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/neroneroffy/content-viewer.git"
+  },
+  "author": "neroneroffy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/neroneroffy/content-viewer/issues"
+  },
+  "homepage": "https://github.com/neroneroffy/content-viewer#readme",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "body-parser": "^1.20.0",
+    "express": "^4.18.1",
+    "puppeteer": "^15.3.2"
+  }
+}

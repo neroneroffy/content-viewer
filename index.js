@@ -39,12 +39,13 @@ class EventEmitter {
 
 const TEXT = 'TEXT'
 const WEB = 'WEB'
-const BTN_ACTIVE_BG_COLOR = '#ccc'
+const BTN_ACTIVE_BG_COLOR = '#e4e4e4'
 const BTN_ACTIVE_TEXT_COLOR = '#fff'
 const BTN_COMMON_TEXT_COLOR = '#ccc'
 const NORMAL_BG_COLOR = '#fff'
 const MIN_WIDTH = 300
 const MIN_HEIGHT = 300
+const IFRAME_SRC = 'http://localhost:8848'
 class MoFish {
     constructor(container, middlewares) {
         this.container = container
@@ -159,9 +160,9 @@ class MoFish {
         const itemCssText = `
             padding: 3px 6px;
             font-size: 12px;
-            border: 1px solid #ccc;
+            border: 1px solid #e4e4e4;
             cursor: pointer;
-            color: #ccc;
+            color: #e4e4e4;
         `
         const itemClick = e => {
             const target = e.target
@@ -307,6 +308,7 @@ class MoFish {
         const styleText = `
             width: 100%;
             height: ${((MIN_HEIGHT - 140) / MIN_HEIGHT) * 100}%;
+            color: #ccc;
             margin-top: 10px;
             overflow-y: auto;
             overflow-x: hidden;
@@ -331,6 +333,8 @@ class MoFish {
         webContent.src = this.inputStr
         webContent.classList.add(`${this._domIdPrefix}-dom-content`)
         const iframe = document.createElement('iframe')
+        iframe.setAttribute('name', 'iframeBox')
+        iframe.src = IFRAME_SRC
         const styleText = `
             width: 100%;
             height: 50%;
@@ -358,11 +362,12 @@ class MoFish {
         webContent.appendChild(iframe)
         this.webContent = webContent
         this.iframeContent = iframe
+
         eventBus.on('onUpdateIframeContent', () => {
             const webDom = document.getElementById(`${this._domIdPrefix}-web-content`)
             const iframeDom = webDom.getElementsByTagName('iframe')[0]
             if (iframeDom) {
-                iframeDom.src = this.inputStr
+                iframeDom.contentWindow.postMessage(this.inputStr,IFRAME_SRC);
             }
         })
         return Promise.resolve(this.webContent)
@@ -501,6 +506,7 @@ const middlewares = [
             // 当按下alt时，才允许拖动网页
             document.addEventListener('keydown', e => {
                 if (e.keyCode === 18) {
+                    console.log(345);
                     webContent.appendChild(mask)
                     webContent.addEventListener('mousedown', event => {
                         const mBounds = mouseBounds(

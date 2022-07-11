@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<style>
+    .tip {
+      color: #e4e4e4;
+    }
+</style>
+<body>
+    <div class="tip">
+        请在输入框中输入地址后回车
+    </div>
+</body>
+</html>
+<script>
+    function receiveMessageFromParent (event) {
+        const src = event.data
+        if (typeof src === 'string') {
+            const body = { src }
+            fetch(
+                '/web',
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                }
+            ).then(res => res.json())
+            .then(res => {
+                document.body.innerHTML = res.content
+                console.log(res);
+            })
+        }
+    }
+    window.addEventListener("message", receiveMessageFromParent, false);
+</script>
