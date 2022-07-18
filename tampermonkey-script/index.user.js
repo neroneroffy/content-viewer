@@ -12,7 +12,7 @@
 
 
 ;(function() {
-// 发布订阅用来控制一些渲染和事件绑定的时机
+  // 发布订阅用来控制一些渲染和事件绑定的时机
   class EventEmitter {
     constructor() {
       this._listeners = new Map()
@@ -50,9 +50,9 @@
       }
     }
   }
-
   const TEXT = 'TEXT'
   const WEB = 'WEB'
+  const WEBTXT = 'WEBTXT'
   const BTN_ACTIVE_BG_COLOR = '#e4e4e4'
   const BTN_ACTIVE_TEXT_COLOR = '#fff'
   const BTN_COMMON_TEXT_COLOR = '#ccc'
@@ -70,6 +70,7 @@
       this.contentControlBtn = null // 清除按钮
       this.textContent = null // 文字模式下的容器
       this.webContent = null // 网页模式下的容器
+      this.webTextContent = null // 网页文本模式下的容器
       this.inputStr = null //缓存输入框输入的内容
       this.opacityControl = null // 透明度控制的DOM
       this._eventBus = null // 发布订阅
@@ -84,6 +85,7 @@
         return Promise.reject(e)
       }
     }
+
     _compose(...funcs) {
       // 串联执行插件
       if (funcs.length === 0) {
@@ -160,6 +162,10 @@
           name: '网页',
           key: WEB
         },
+        {
+          name: '抓取网页文字',
+          key: WEBTXT
+        },
       ]
       const toolBarEle = document.createElement('div')
       toolBarEle.id = `${this._domIdPrefix}-tool-bar`
@@ -190,9 +196,9 @@
             contentControlBtn.style.display = 'inline'
             break
           case WEB:
+          case WEBTXT:
             contentControlBtn.style.display = 'none'
         }
-        this.inputStr = ''
         this._renderContent(key)
         for (let i = 0; i < items.length; i++) {
           const tool = items[i]
@@ -231,8 +237,7 @@
         const code = event.keyCode;
         if(code ===13){ //这是键盘的enter监听事件
           host.inputStr = this.value
-          console.log('host.mode', host.mode);
-          if (host.mode !== WEB) {
+          if (host.mode !== WEB || host.mode !== WEBTXT) {
             this.value = ''
           }
           this.blur()
@@ -279,7 +284,6 @@
       // 文字模式和网页模式，都由该函数集中渲染
       const eventBus = this.getEventBus()
       const contentWrapper = document.getElementById(`${this._domIdPrefix}-content-wrapper`)
-
       const doms = document.getElementsByClassName(`${this._domIdPrefix}-dom-content`)
       if (doms && doms.length) {
         for (let i = 0; i < doms.length; i++) {
@@ -311,7 +315,30 @@
             return this.webContent
           }
           return this._renderWebContent()
+        case WEBTXT:
+          const webTextContent = document.getElementById(`${this._domIdPrefix}-web-text-content`)
+          if (!webTextContent) {
+            this._renderWebTextContent().then(dom => {
+              contentWrapper.appendChild(dom)
+            })
+          } else {
+            webTextContent.style.display = 'block'
+          }
+          return
+        default:
+          return null
       }
+    }
+    _renderLoading() {
+      const loading = document.createElement('div')
+      loading.id = `${this._domIdPrefix}-loading`
+      const cssText = `
+        width: 80px;
+        margin: 50px auto 0 auto;
+      `
+      this.attachStyle(loading, cssText)
+      loading.innerHTML = '加载中...'
+      return loading
     }
     _renderTextContent() {
       // 渲染文字模式的容器
@@ -338,6 +365,48 @@
         this.textContent.innerHTML = this.inputStr
       })
       return Promise.resolve(this.textContent)
+    }
+    _renderWebTextContent() {
+      // 渲染网页文字模式的容器
+      const eventBus = this.getEventBus()
+      const webTextContent = document.createElement('div')
+      webTextContent.id = `${this._domIdPrefix}-web-text-content`
+      webTextContent.classList.add(`${this._domIdPrefix}-dom-content`)
+      const styleText = `
+            width: 100%;
+            height: ${((MIN_HEIGHT - 140) / MIN_HEIGHT) * 100}%;
+            color: #ccc;
+            margin-top: 10px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE 10+ */
+            ::-webkit-scrollbar {
+                display: none; /* Chrome Safari */
+            }
+          `
+      this.attachStyle(webTextContent, styleText)
+      this.webTextContent = webTextContent
+      eventBus.on('onUpdateWebTextContent', () => {
+        const src = this.inputStr
+        const body = { src, isText: true }
+        this.webTextContent.innerHTML = ''
+        this.webTextContent.append(this._renderLoading())
+        fetch(
+            `${IFRAME_SRC}/web`,
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(body)
+            }
+        ).then(res => res.json())
+            .then(res => {
+              this.webTextContent.innerHTML = res.content
+            })
+      })
+      return Promise.resolve(this.webTextContent)
     }
     _renderWebContent() {
       // 渲染网页模式的容器
@@ -450,6 +519,9 @@
         case WEB:
           eventBus.emit('onUpdateIframeContent')
           break
+        case WEBTXT:
+          eventBus.emit('onUpdateWebTextContent')
+          break
         default:
           return null
       }
@@ -520,6 +592,7 @@
         // 当按下alt时，才允许拖动网页
         document.addEventListener('keydown', e => {
           if (e.keyCode === 18) {
+            console.log(345);
             webContent.appendChild(mask)
             webContent.addEventListener('mousedown', event => {
               const mBounds = mouseBounds(
